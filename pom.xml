@@ -2,30 +2,42 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <!-- 改用稳定的 3.2.5 版本（兼容 Spring AI 1.x） -->
         <version>3.2.5</version>
         <relativePath/>
     </parent>
+
     <groupId>com.example</groupId>
     <artifactId>SpringAI</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>SpringAI</name>
-    <description>SpringAI with Boot 3.2.5 (稳定版)</description>
+    <description>Spring AI Demo</description>
     <packaging>jar</packaging>
 
+    <!-- ===== 版本集中管理 ===== -->
     <properties>
         <java.version>17</java.version>
-        <!-- Spring AI 1.0.0-M3（公共仓库可下载） -->
         <spring-ai.version>1.0.0-M3</spring-ai.version>
         <spring-cloud.version>2023.0.1</spring-cloud.version>
         <spring-cloud-alibaba.version>2023.0.1.0</spring-cloud-alibaba.version>
+        <volcengine-sdk.version>1.0.15</volcengine-sdk.version>
     </properties>
 
+    <!-- ===== BOM 统一版本管理 ===== -->
     <dependencyManagement>
         <dependencies>
+            <!-- Spring AI BOM -->
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- Spring Cloud BOM -->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
@@ -33,6 +45,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <!-- Spring Cloud Alibaba BOM -->
             <dependency>
                 <groupId>com.alibaba.cloud</groupId>
                 <artifactId>spring-cloud-alibaba-dependencies</artifactId>
@@ -43,86 +56,88 @@
         </dependencies>
     </dependencyManagement>
 
-    <!-- 仅保留阿里云+中央仓库 -->
+    <!-- ===== 仓库（Spring Milestones 优先） ===== -->
     <repositories>
-        <repository>
-            <id>aliyunmaven</id>
-            <name>阿里云中央仓库</name>
-            <url>https://maven.aliyun.com/repository/public</url>
-        </repository>
-        <repository>
-            <id>maven-central</id>
-            <name>Maven Central</name>
-            <url>https://repo1.maven.org/maven2</url>
-        </repository>
-        <!-- Spring 里程碑仓库（M3 版本需要） -->
         <repository>
             <id>spring-milestones</id>
             <name>Spring Milestones</name>
             <url>https://repo.spring.io/milestone</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
+            <snapshots><enabled>false</enabled></snapshots>
         </repository>
         <repository>
             <id>volcengine-maven</id>
             <name>Volcengine Maven Repository</name>
             <url>https://maven.volcengine.com/repository/maven-public/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
+            <snapshots><enabled>false</enabled></snapshots>
+        </repository>
+        <repository>
+            <id>aliyunmaven</id>
+            <name>阿里云中央仓库</name>
+            <url>https://maven.aliyun.com/repository/public</url>
         </repository>
     </repositories>
 
+    <!-- ===== 依赖 ===== -->
     <dependencies>
-        <!-- 核心 Web 依赖 -->
+        <!-- Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Spring AI Ollama 完整启动器（已包含 core） -->
+        <!-- Spring AI - Ollama（版本由 BOM 管理） -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-ollama-spring-boot-starter</artifactId>
-            <version>${spring-ai.version}</version>
         </dependency>
 
+        <!-- Nacos 配置中心（版本由 Spring Cloud Alibaba BOM 管理） -->
         <dependency>
             <groupId>com.alibaba.cloud</groupId>
             <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
         </dependency>
-
-        <!-- 测试依赖（可选） -->
+        <!-- bootstrap 上下文支持（Nacos config 必须） -->
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-bootstrap</artifactId>
         </dependency>
 
+        <!-- 火山引擎 ARK SDK -->
         <dependency>
             <groupId>com.volcengine</groupId>
             <artifactId>volcengine-java-sdk-ark-runtime</artifactId>
-            <version>LATEST</version>
+            <version>${volcengine-sdk.version}</version>
         </dependency>
 
+        <!-- 工具 -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
+
+        <!-- 测试 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
-
-
+    <!-- ===== 构建 ===== -->
     <build>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
             </plugin>
         </plugins>
     </build>
