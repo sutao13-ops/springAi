@@ -1,0 +1,43 @@
+server:
+  port: 8080
+
+# Ollama 本地模型配置（保留）
+spring:
+  application:
+    name: springai
+  config:
+    import: optional:nacos:ark.yaml?group=DEFAULT_GROUP
+  cloud:
+    nacos:
+      server-addr: 127.0.0.1:8848
+      config:
+        group: DEFAULT_GROUP
+        file-extension: yaml
+        refresh-enabled: true
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      model: llama3
+      timeout: 60000
+    # 豆包 OpenAI 兼容配置（核心）
+    openai:
+      # 豆包 OpenAI 兼容 API 地址（官方提供）
+      base-url: https://api.doubao.com/openai/v1
+      # 豆包 API 密钥（从豆包开发者平台获取：https://www.doubao.com/developer）
+      api-key: 7d4ae17e-5086-4fdf-923c-ea9b4584ed34
+      chat:
+        options:
+          model: doubao-pro  # 豆包模型名称
+          temperature: 0.7
+          max-tokens: 2048
+          timeout: 30000
+
+# 请在 Nacos 中创建配置：
+# Data ID: ark.yaml
+# Group: DEFAULT_GROUP
+# 配置内容：
+# ark:
+#   api:
+#     key: 7d4ae17e-5086-4fdf-923c-ea9b4584ed34
+#     base-url: https://ark.cn-beijing.volces.com/api/v3
+#     model: doubao-seed-2-0-lite-260215
