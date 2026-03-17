@@ -1,5 +1,10 @@
-package com.example.springai.service;
+package com.example.springai.service.impl;
 
+import com.example.springai.service.ChatService;
+import com.volcengine.ark.runtime.model.completion.chat.ChatCompletionChoice;
+import com.volcengine.ark.runtime.model.completion.chat.ChatCompletionRequest;
+import com.volcengine.ark.runtime.model.completion.chat.ChatMessage;
+import com.volcengine.ark.runtime.model.completion.chat.ChatMessageRole;
 import com.volcengine.ark.runtime.model.responses.constant.ResponsesConstants;
 import com.volcengine.ark.runtime.model.responses.content.InputContentItemImage;
 import com.volcengine.ark.runtime.model.responses.content.InputContentItemText;
@@ -15,6 +20,11 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.ollama.api.OllamaOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+
+import java.util.ArrayList;
+import java.util.List;
+
 
 @Service
 public class ChatServiceImpl implements ChatService {
@@ -110,4 +120,43 @@ public class ChatServiceImpl implements ChatService {
     private boolean hasText(String value) {
         return value != null && !value.isBlank();
     }
+
+    @Override
+    public Flux<String> doubaoStreamChat(String message) {
+        log.info("接收豆包流式请求：{}", message);
+
+        return Flux.create(sink -> {
+            ArkService arkService = createArkService();
+            try {
+                // 先构建消息列表，再传给 messages()
+                List<ChatMessage> messages = new ArrayList<>();
+                messages.add(ChatMessage.builder().role(ChatMessageRole.USER).content(message).build());
+
+                ChatCompletionRequest request = ChatCompletionRequest.builder()
+                        .model(arkModel)
+                        .messages(messages)       // ← 正确：传 List，不是 addMessage
+                        .stream(Boolean.TRUE)     // ← 开启流式
+                        .build();
+
+                arkService.streamChatCompletion(request).blockingForEach(chunk -> {
+                            List<ChatCompletionChoice> choices = chunk.getChoices();
+                            if (choices != null && !choices.isEmpty()) {
+                                String text = choices.get(0).getMessage().getContent().toString();
+                                if (text != null && !text.isEmpty()) {
+                                    sink.next(text);
+                                }
+                            }
+                        });
+
+                log.info("豆包流式响应结束");
+                sink.complete();
+            } catch (Exception e) {
+                log.error("豆包流式接口执行失败", e);
+                sink.error(e);
+            } finally {
+                arkService.shutdownExecutor();
+            }
+        });
+    }
+
 }
