@@ -1,16 +1,23 @@
 package com.example.springai.service;
 
-import com.volcengine.ark.runtime.model.responses.response.ResponseObject;
+import com.example.springai.common.ChatRequest;
+import com.example.springai.common.ChatResponse;
 import reactor.core.publisher.Flux;
 
 public interface ChatService {
 
-    String chat(String message);
+    /**
+     * 统一聊天接口
+     */
+    ChatResponse chat(ChatRequest request);
 
-    ResponseObject doubaoChat(String message);
+    /**
+     * 统一流式聊天接口
+     */
+    Flux<String> streamChat(ChatRequest request);
 
-    String doubaoVision(String imageUrl, String prompt);
-
-    // 新增：豆包流式对话，返回 Flux<String> 逐块推送
-    Flux<String> doubaoStreamChat(String message);
+    /**
+     * 视觉识别接口
+     */
+    ChatResponse vision(String imageUrl, String prompt);
 }

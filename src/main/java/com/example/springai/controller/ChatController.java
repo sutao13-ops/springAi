@@ -1,12 +1,11 @@
 package com.example.springai.controller;
 
 import com.example.springai.common.ApiResponse;
+import com.example.springai.common.ChatRequest;
+import com.example.springai.common.ChatResponse;
 import com.example.springai.service.ChatService;
-import com.volcengine.ark.runtime.model.responses.response.ResponseObject;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
 @RestController
@@ -18,27 +17,34 @@ public class ChatController {
         this.chatService = chatService;
     }
 
-    @GetMapping("/chat")
-    public ApiResponse<String> chat(@RequestParam(value = "message", defaultValue = "介绍一下自己") String message) {
-        return ApiResponse.success(chatService.chat(message));
+    /**
+     * 统一聊天接口
+     *
+     * 示例请求:
+     * {
+     *   "provider": "DOUBAO",
+     *   "message": "你好",
+     *   "stream": false
+     * }
+     */
+    @PostMapping("/chat")
+    public ApiResponse<ChatResponse> chat(@RequestBody ChatRequest request) {
+        return ApiResponse.success(chatService.chat(request));
     }
 
-    @GetMapping("/doubao/chat")
-    public ApiResponse<ResponseObject> doubaoChat(@RequestParam(value = "message", defaultValue = "介绍一下自己") String message) {
-        return ApiResponse.success(chatService.doubaoChat(message));
+    /**
+     * 统一流式聊天接口
+     */
+    @PostMapping(value = "/doubao/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<String> streamChat(@RequestBody ChatRequest request) {
+        return chatService.streamChat(request);
     }
 
-
-    @GetMapping(value = "/doubao/stream/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<String> doubaoStreamChat(@RequestParam(value = "message", defaultValue = "介绍一下自己") String message) {
-        return chatService.doubaoStreamChat(message);
+    /**
+     * 视觉识别接口
+     */
+    @PostMapping("/vision")
+    public ApiResponse<ChatResponse> vision(@RequestParam("imageUrl") String imageUrl, @RequestParam("prompt") String prompt) {
+        return ApiResponse.success(chatService.vision(imageUrl, prompt));
     }
-
-    @GetMapping("/doubao/vision")
-    public ApiResponse<String> doubaoVision(@RequestParam("imageUrl") String imageUrl, @RequestParam("prompt") String prompt) {
-        return ApiResponse.success(chatService.doubaoVision(imageUrl, prompt));
-    }
-
 }
-
-
