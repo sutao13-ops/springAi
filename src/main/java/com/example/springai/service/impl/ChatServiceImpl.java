@@ -32,26 +32,31 @@ import reactor.core.publisher.Flux;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 聊天服务实现类
+ * <p>
+ * 统一封装 Ollama、豆包等模型提供商的调用逻辑，
+ * 通过依赖注入获取 ArkService 单例实例
+ * </p>
+ *
+ * @Author SuTao
+ * @Date 2026/3/16
+ */
 @Service
 public class ChatServiceImpl implements ChatService {
 
     private static final Logger log = LoggerFactory.getLogger(ChatServiceImpl.class);
 
     private final ChatClient chatClient;
-
-    @Value("${ark.api.key}")
-    private String arkApiKey;
-
-    @Value("${ark.api.base-url}")
-    private String arkBaseUrl;
+    // 注入单例 ArkService
+    private final ArkService arkService;
 
     @Value("${ark.api.model}")
     private String arkModel;
 
-    public ChatServiceImpl(ChatClient.Builder chatClientBuilder) {
-        this.chatClient = chatClientBuilder
-                .defaultOptions(OllamaOptions.create().withModel("gpt-oss:20b"))
-                .build();
+    public ChatServiceImpl(ChatClient.Builder chatClientBuilder, ArkService arkService) {
+        this.chatClient = chatClientBuilder.defaultOptions(OllamaOptions.create().withModel("gpt-oss:20b")).build();
+        this.arkService = arkService;  // 构造器注入
     }
 
     @Override
@@ -98,7 +103,6 @@ public class ChatServiceImpl implements ChatService {
             return ChatResponse.error("imageUrl 和 prompt 不能为空");
         }
 
-        ArkService arkService = createArkService();
         try {
             log.info("接收豆包识图请求，imageUrl：{}，prompt：{}", imageUrl, prompt);
             CreateResponsesRequest request = CreateResponsesRequest.builder()
@@ -125,15 +129,13 @@ public class ChatServiceImpl implements ChatService {
         } catch (Exception e) {
             log.error("豆包识图接口执行失败", e);
             return ChatResponse.error("识图失败: " + e.getMessage());
-        } finally {
-            arkService.shutdownExecutor();
         }
     }
 
-
+    // ==================== 私有方法（内部实现） ====================
 
     /**
-     * 从 ResponseObject 中提取推理过程和文本内容
+     * 从 ResponseObject 中提取文本内容
      */
     private String extractContent(ResponseObject response) {
         if (response.getOutput() == null || response.getOutput().isEmpty()) {
@@ -141,12 +143,8 @@ public class ChatServiceImpl implements ChatService {
         }
 
         try {
-            // 遍历 output 列表，找到 ItemOutputMessage 类型的元素
             for (Object item : response.getOutput()) {
-                if (item instanceof ItemOutputMessage) {
-                    ItemOutputMessage message = (ItemOutputMessage) item;
-
-                    // 从消息内容中提取文本
+                if (item instanceof ItemOutputMessage message) {
                     if (message.getContent() != null && !message.getContent().isEmpty()) {
                         OutputContentItemText textItem = (OutputContentItemText) message.getContent().get(0);
                         return textItem.getText() != null ? textItem.getText() : "";
@@ -169,17 +167,12 @@ public class ChatServiceImpl implements ChatService {
         }
 
         try {
-            // 遍历 output 列表，找到 ItemReasoning 类型的元素
             for (Object item : response.getOutput()) {
-                if (item instanceof ItemReasoning) {
-                    ItemReasoning reasoning = (ItemReasoning) item;
-
-                    // 从 summary 中提取推理摘要
+                if (item instanceof ItemReasoning reasoning) {
                     if (reasoning.getSummary() != null && !reasoning.getSummary().isEmpty()) {
                         StringBuilder sb = new StringBuilder();
                         for (Object summaryItem : reasoning.getSummary()) {
-                            if (summaryItem instanceof ReasoningSummaryPart) {
-                                ReasoningSummaryPart part = (ReasoningSummaryPart) summaryItem;
+                            if (summaryItem instanceof ReasoningSummaryPart part) {
                                 if (part.getText() != null) {
                                     sb.append(part.getText());
                                 }
@@ -206,11 +199,6 @@ public class ChatServiceImpl implements ChatService {
         return 0;
     }
 
-
-
-
-    // ==================== 私有方法（内部实现） ====================
-
     private String chatOllama(String message) {
         try {
             log.info("接收 Ollama 聊天请求：{}", message);
@@ -224,7 +212,6 @@ public class ChatServiceImpl implements ChatService {
     }
 
     private ChatResponse chatDoubao(String message) {
-        ArkService arkService = createArkService();
         try {
             log.info("接收豆包文本请求：{}", message);
             CreateResponsesRequest request = CreateResponsesRequest.builder()
@@ -233,7 +220,6 @@ public class ChatServiceImpl implements ChatService {
                     .build();
             ResponseObject response = arkService.createResponse(request);
 
-            // 提取内容
             String content = extractContent(response);
             String reasoning = extractReasoning(response);
             long tokensUsed = extractTokensUsed(response);
@@ -243,18 +229,14 @@ public class ChatServiceImpl implements ChatService {
         } catch (Exception e) {
             log.error("豆包文本接口执行失败", e);
             throw new RuntimeException("豆包文本接口执行失败: " + e.getMessage(), e);
-        } finally {
-            arkService.shutdownExecutor();
         }
+        // 注意：不再调用 arkService.shutdownExecutor()
     }
-
-
 
     private Flux<String> streamDoubao(String message) {
         log.info("接收豆包流式请求：{}", message);
 
         return Flux.create(sink -> {
-            ArkService arkService = createArkService();
             try {
                 List<ChatMessage> messages = new ArrayList<>();
                 messages.add(ChatMessage.builder().role(ChatMessageRole.USER).content(message).build());
@@ -280,17 +262,9 @@ public class ChatServiceImpl implements ChatService {
             } catch (Exception e) {
                 log.error("豆包流式接口执行失败", e);
                 sink.error(e);
-            } finally {
-                arkService.shutdownExecutor();
             }
+            // 注意：不再调用 arkService.shutdownExecutor()
         });
-    }
-
-    private ArkService createArkService() {
-        return ArkService.builder()
-                .apiKey(arkApiKey)
-                .baseUrl(arkBaseUrl)
-                .build();
     }
 
     private boolean hasText(String value) {

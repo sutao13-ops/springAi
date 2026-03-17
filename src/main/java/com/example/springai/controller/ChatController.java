@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
 @RestController
+@RequestMapping("/api")
 public class ChatController {
 
     private final ChatService chatService;
