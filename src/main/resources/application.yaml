@@ -1,12 +1,14 @@
 server:
   port: 8080
 
-# Ollama 本地模型配置（保留）
+# Ollama 本地模型配置
 spring:
   application:
     name: springai
   config:
-    import: optional:nacos:ark.yaml?group=DEFAULT_GROUP
+    import:
+      - optional:nacos:ark.yaml?group=DEFAULT_GROUP      # 火山引擎配置
+      - optional:nacos:redis.yaml?group=DEFAULT_GROUP    # Redis 配置
   cloud:
     nacos:
       server-addr: 127.0.0.1:8848
@@ -19,3 +21,9 @@ spring:
       base-url: http://localhost:11434
       model: llama3
       timeout: 60000
+
+# 会话配置（不在 spring 下，是自定义配置）
+session:
+  redis:
+    key-prefix: "chat:session:"
+    ttl: 3600  # 会话过期时间（秒）
