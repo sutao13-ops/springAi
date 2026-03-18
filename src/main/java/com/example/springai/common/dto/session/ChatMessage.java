@@ -1,4 +1,4 @@
-package com.example.springai.common.dto;
+package com.example.springai.common.dto.session;
 
 import java.time.Instant;
 

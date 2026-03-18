@@ -1,4 +1,4 @@
-package com.example.springai.common.dto;
+package com.example.springai.common.dto.session;
 
 /**
  * 会话创建响应

@@ -16,14 +16,40 @@ spring:
         group: DEFAULT_GROUP
         file-extension: yaml
         refresh-enabled: true
+  # PostgreSQL 数据源配置
+  datasource:
+    url: jdbc:postgresql://localhost:5432/postgres
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
+  # JPA 配置
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   ai:
     ollama:
       base-url: http://localhost:11434
       model: llama3
       timeout: 60000
+    # pgvector 向量存储配置（如果需要）
+    vectorstore:
+      pgvector:
+        index-type: HNSW
+        distance-type: COSINE_DISTANCE
+        dimensions: 1536
 
 # 会话配置（不在 spring 下，是自定义配置）
 session:
   redis:
     key-prefix: "chat:session:"
     ttl: 3600  # 会话过期时间（秒）
+
+# 提示词模板配置
+prompt:
+  redis:
+    key-prefix: "prompt:template:"
+    list-key: "prompt:list"

@@ -2,8 +2,8 @@ package com.example.springai.service.impl;
 
 import com.example.springai.common.ChatRequest;
 import com.example.springai.common.ChatResponse;
-import com.example.springai.common.dto.ChatMessage;
-import com.example.springai.common.dto.SessionChatRequest;
+import com.example.springai.common.dto.session.ChatMessage;
+import com.example.springai.common.dto.session.SessionChatRequest;
 import com.example.springai.service.ChatService;
 import com.example.springai.service.SessionService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -179,12 +179,13 @@ public class SessionServiceImpl implements SessionService {
     }
 
     /**
-     * 保存历史到 Redis
+     * 保存历史到 Redis(自动续期)
      */
     private void saveHistory(String sessionId, List<ChatMessage> history) {
         String key = getSessionKey(sessionId);
         try {
             String json = objectMapper.writeValueAsString(history);
+            // 每次保存都会重置 TTL
             redisTemplate.opsForValue().set(key, json, Duration.ofSeconds(sessionTtl));
         } catch (JsonProcessingException e) {
             log.error("保存会话历史失败: {}", sessionId, e);

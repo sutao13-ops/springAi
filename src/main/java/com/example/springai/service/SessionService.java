@@ -1,8 +1,8 @@
 package com.example.springai.service;
 
 import com.example.springai.common.ChatResponse;
-import com.example.springai.common.dto.ChatMessage;
-import com.example.springai.common.dto.SessionChatRequest;
+import com.example.springai.common.dto.session.ChatMessage;
+import com.example.springai.common.dto.session.SessionChatRequest;
 import reactor.core.publisher.Flux;
 
 import java.util.List;

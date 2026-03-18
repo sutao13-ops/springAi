@@ -2,9 +2,9 @@ package com.example.springai.controller;
 
 import com.example.springai.common.ApiResponse;
 import com.example.springai.common.ChatResponse;
-import com.example.springai.common.dto.ChatMessage;
-import com.example.springai.common.dto.SessionChatRequest;
-import com.example.springai.common.dto.SessionCreateResponse;
+import com.example.springai.common.dto.session.ChatMessage;
+import com.example.springai.common.dto.session.SessionChatRequest;
+import com.example.springai.common.dto.session.SessionCreateResponse;
 import com.example.springai.service.SessionService;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -94,7 +94,7 @@ public class SessionController {
      * @param sessionId 会话ID
      * @return 操作结果
      */
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ApiResponse<Boolean> deleteSession(@PathVariable("id") String sessionId) {
         boolean result = sessionService.deleteSession(sessionId);
         return ApiResponse.success(result);
