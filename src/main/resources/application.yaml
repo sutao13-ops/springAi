@@ -18,10 +18,10 @@ spring:
         refresh-enabled: true
   # PostgreSQL 数据源配置
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/springai
     username: postgres
     password: root
-    driver-class-name: org.postgresql.Driver
   # JPA 配置
   jpa:
     hibernate:
@@ -41,6 +41,19 @@ spring:
         index-type: HNSW
         distance-type: COSINE_DISTANCE
         dimensions: 1536
+
+# MyBatis-Plus 配置
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: assign_id
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  mapper-locations: classpath*:/mapper/**/*.xml
 
 # 会话配置（不在 spring 下，是自定义配置）
 session:

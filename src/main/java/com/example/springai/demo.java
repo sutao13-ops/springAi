@@ -1,4 +1,4 @@
-package com.example.springai.controller;
+package com.example.springai;
 
 import com.volcengine.ark.runtime.model.responses.constant.ResponsesConstants;
 import com.volcengine.ark.runtime.model.responses.content.InputContentItemImage;
