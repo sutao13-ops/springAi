@@ -25,6 +25,7 @@
         <spring-cloud-alibaba.version>2023.0.1.0</spring-cloud-alibaba.version>
         <volcengine-sdk.version>1.0.15</volcengine-sdk.version>
         <langchain4j.version>0.36.2</langchain4j.version>
+        <mybatis-plus.version>3.5.5</mybatis-plus.version>
     </properties>
 
     <!-- ===== BOM 统一版本管理 ===== -->
@@ -115,6 +116,13 @@
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j</artifactId>
             <version>${langchain4j.version}</version>
+        </dependency>
+
+        <!-- ===== MyBatis-Plus ===== -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+            <version>${mybatis-plus.version}</version>
         </dependency>
 
         <!-- PostgreSQL -->

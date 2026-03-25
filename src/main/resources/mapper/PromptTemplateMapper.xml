@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.springai.mapper.PromptTemplateMapper">
+
+    <!-- 结果映射，处理 JSONB 字段 -->
+    <resultMap id="BaseResultMap" type="com.example.springai.entity.PromptTemplateEntity">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="category" property="category"/>
+        <result column="system_prompt" property="systemPrompt"/>
+        <result column="user_prompt_template" property="userPromptTemplate"/>
+        <result column="variables" property="variables"
+                typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result column="examples" property="examples"
+                typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result column="tags" property="tags"
+                typeHandler="com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler"/>
+        <result column="is_default" property="isDefault"/>
+        <result column="use_count" property="useCount"/>
+        <result column="created_at" property="createdAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <!-- 插入模板（处理 JSONB 字段） -->
+    <insert id="insert" parameterType="com.example.springai.entity.PromptTemplateEntity">
+        INSERT INTO prompt_template (
+            id, name, description, category, system_prompt, user_prompt_template,
+            variables, examples, tags, is_default, use_count, created_at, updated_at
+        ) VALUES (
+            #{id}, #{name}, #{description}, #{category}, #{systemPrompt}, #{userPromptTemplate},
+            #{variables, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler}::jsonb,
+            #{examples, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler}::jsonb,
+            #{tags, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler}::jsonb,
+            #{isDefault}, #{useCount}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <!-- 更新模板（处理 JSONB 字段） -->
+    <update id="updateById" parameterType="com.example.springai.entity.PromptTemplateEntity">
+        UPDATE prompt_template
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="description != null">description = #{description},</if>
+            <if test="category != null">category = #{category},</if>
+            <if test="systemPrompt != null">system_prompt = #{systemPrompt},</if>
+            <if test="userPromptTemplate != null">user_prompt_template = #{userPromptTemplate},</if>
+            <if test="variables != null">variables = #{variables, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler}::jsonb,</if>
+            <if test="examples != null">examples = #{examples, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler}::jsonb,</if>
+            <if test="tags != null">tags = #{tags, typeHandler=com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler}::jsonb,</if>
+            <if test="isDefault != null">is_default = #{isDefault},</if>
+            <if test="useCount != null">use_count = #{useCount},</if>
+            <if test="updatedAt != null">updated_at = #{updatedAt},</if>
+        </set>
+        WHERE id = #{id} AND deleted = 0
+    </update>
+
+</mapper>
