@@ -5,6 +5,7 @@ import com.example.springai.common.ChatRequest;
 import com.example.springai.common.ChatResponse;
 import com.example.springai.common.dto.prompt.ChatWithPromptRequest;
 import com.example.springai.common.dto.session.SessionChatRequest;
+import com.example.springai.common.enums.ModelProviderEnum;
 import com.example.springai.service.ChatService;
 import com.example.springai.service.PromptService;
 import com.example.springai.service.SessionService;
@@ -14,8 +15,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
+
+import java.util.Map;
 
 /**
  * 基于提示词模板的聊天控制器
@@ -42,18 +46,16 @@ public class ChatWithPromptController {
      * @return 聊天响应
      */
     @PostMapping("/with-prompt")
-//    public ApiResponse<ChatResponse> chatWithPrompt(@RequestParam String templateId, @RequestParam String message, @RequestParam(required = false) Map<String, String> variables, @RequestParam(defaultValue = "DOUBAO") String provider) {
-    public ApiResponse<ChatResponse> chatWithPrompt(@RequestBody ChatWithPromptRequest request) {
+    public ApiResponse<ChatResponse> chatWithPrompt(@RequestParam String templateId, @RequestParam String message, @RequestParam(required = false) Map<String, String> variables, @RequestParam(defaultValue = "DOUBAO") String provider) {
 
         try {
             // 渲染提示词
-//            String fullPrompt = promptService.render(templateId, variables, message);
-            String fullPrompt = promptService.render(request.templateId(), request.variables(), request.message());
+            String fullPrompt = promptService.render(templateId, variables, message);
 
             // 调用聊天服务
             ChatResponse response = chatService.chat(
                     new ChatRequest(
-                            request.provider(),
+                            ModelProviderEnum.valueOf(provider),
                             fullPrompt,
                             null, null, false
                     )
